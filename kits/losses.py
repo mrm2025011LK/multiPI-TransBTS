@@ -24,7 +24,7 @@ class BinaryCrossEntropy(torch.nn.Module):
         loss = 0
         # target = torch.unsqueeze(target, 1)
         n, c, h, w = output.size()
-        criterion = torch.nn.BCELoss(weight=weight, reduction='mean').cuda()
+        criterion = torch.nn.BCELoss(weight=weight, reduction='mean')
         loss = criterion(output, target.float())
         loss /= n
         '''

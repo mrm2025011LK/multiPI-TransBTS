@@ -11,7 +11,7 @@ from kits import configure_loss
 from kits import LR_Scheduler
 from kits import Saver
 from kits import TensorboardSummary
-from data import get_segmentation_dataset
+from data2020 import get_segmentation_dataset  # upstream imported a non-existent `data` package
 
 
 class Trainer(object):
@@ -90,8 +90,7 @@ class Trainer(object):
             args.start_epoch = checkpoint['epoch']
 
             self.model.load_state_dict(checkpoint['state_dict'])
-            if not args.ft:
-                self.optimizer.load_state_dict(checkpoint['optimizer'])
+            self.optimizer.load_state_dict(checkpoint['optimizer'])  # upstream referenced an undefined args.ft
             self.best_pred = checkpoint['best_pred']
             print("=> loaded checkpoint '{}' (epoch {})"
                   .format(args.resume, checkpoint['epoch']))

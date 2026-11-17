@@ -12,7 +12,7 @@ sys.path.append(root_path)
 import torch
 import torch.utils.data as data
 
-from data import get_segmentation_dataset
+from data2020 import get_segmentation_dataset  # upstream imported a non-existent `data` package
 from networks.pvt_new import multiPI_TransBTS
 
 
@@ -53,7 +53,7 @@ class Tester(object):
                                            num_workers=4,
                                            pin_memory=True)
 
-        self.model = multiPI_TransBTS(num_classes=3).cuda()
+        self.model = multiPI_TransBTS([0.5, 0.5]).cuda()  # upstream passed a non-existent num_classes argument
 
         if args.resume is not None:
             if not os.path.isfile(args.resume):
@@ -77,7 +77,7 @@ class Tester(object):
 
             with torch.no_grad():
                 if self.args.model == 'multiPI_TransBTS':
-                    output, _, _ = self.model(image)
+                    output, _, _, _ = self.model(image)  # the model returns four tensors
 
             output = torch.sigmoid(output)
             pred = (output > 0.5).float()

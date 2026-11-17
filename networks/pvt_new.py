@@ -10,7 +10,8 @@ class Curvature(torch.nn.Module):
     def __init__(self, ratio):
         super(Curvature, self).__init__()
         weights = torch.tensor([[[[-1 / 16, 5 / 16, -1 / 16], [5 / 16, -1, 5 / 16], [-1 / 16, 5 / 16, -1 / 16]]]])
-        self.weight = torch.nn.Parameter(weights).cuda()
+        # fixed (non-learned) curvature kernel; a buffer follows the module's device
+        self.register_buffer('weight', weights, persistent=False)
         self.ratio = ratio
 
     def forward(self, x):
@@ -184,7 +185,7 @@ class Final_Up(nn.Module):
 
 
 class multiPI_TransBTS(nn.Module):
-    def __init__(self, ratio):
+    def __init__(self, ratio, pretrained_path='./networks/pretrained_pth/pvt_v2_b2.pth'):
         super(multiPI_TransBTS, self).__init__()
         self.conv1 = nn.Conv2d(in_channels=1, out_channels=3, kernel_size=3, padding=1)
         self.conv2 = nn.Conv2d(in_channels=1, out_channels=3, kernel_size=3, padding=1)
@@ -194,8 +195,7 @@ class multiPI_TransBTS(nn.Module):
         self.backbone3 = pvt_v2_b2()  # [64, 128, 320, 512]
         self.backbone4 = pvt_v2_b2()  # [64, 128, 320, 512]
 
-        path = './networks/pretrained_pth/pvt_v2_b2.pth'
-        save_model = torch.load(path)
+        save_model = torch.load(pretrained_path, map_location='cpu')
         model_dict = self.backbone1.state_dict()
         state_dict = {k: v for k, v in save_model.items() if k in model_dict.keys()}
         model_dict.update(state_dict)
