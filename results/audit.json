@@ -1,0 +1,110 @@
+{
+  "split": {
+    "2019": {
+      "slices": {
+        "train": 17720,
+        "val": 2215,
+        "test": 2215
+      },
+      "slice_fraction": {
+        "train": 0.8,
+        "val": 0.1,
+        "test": 0.1
+      },
+      "patients_total": 335,
+      "patients": {
+        "train": 335,
+        "val": 334,
+        "test": 331
+      },
+      "slice_overlap_train_test": 0,
+      "test_patients_also_in_train": 331,
+      "val_patients_also_in_train": 334,
+      "test_patients_also_in_val": 330
+    },
+    "2020": {
+      "slices": {
+        "train": 19536,
+        "val": 2443,
+        "test": 2442
+      },
+      "slice_fraction": {
+        "train": 0.8,
+        "val": 0.1,
+        "test": 0.1
+      },
+      "patients_total": 369,
+      "patients": {
+        "train": 369,
+        "val": 368,
+        "test": 367
+      },
+      "slice_overlap_train_test": 0,
+      "test_patients_also_in_train": 367,
+      "val_patients_also_in_train": 368,
+      "test_patients_also_in_val": 366
+    }
+  },
+  "adjacent": {
+    "2019": {
+      "test_slices": 2215,
+      "with_adjacent_slice_in_train": 2099,
+      "fraction": 0.9476
+    },
+    "2020": {
+      "test_slices": 2442,
+      "with_adjacent_slice_in_train": 2332,
+      "fraction": 0.955
+    }
+  },
+  "hausdorff": [
+    {
+      "shift_px": 0,
+      "released_hausdorff_95": 0.0,
+      "spatial_hd95_px": 0.0
+    },
+    {
+      "shift_px": 5,
+      "released_hausdorff_95": 3.004,
+      "spatial_hd95_px": 5.0
+    },
+    {
+      "shift_px": 30,
+      "released_hausdorff_95": 5.933,
+      "spatial_hd95_px": 30.0
+    },
+    {
+      "shift_px": 60,
+      "released_hausdorff_95": 5.933,
+      "spatial_hd95_px": 60.0
+    },
+    {
+      "shift_px": 90,
+      "released_hausdorff_95": 5.933,
+      "spatial_hd95_px": 90.0
+    }
+  ],
+  "model": {
+    "params_million": 134.03,
+    "never_used_million": 28.57,
+    "never_used_modules": {
+      "backbone0.block2": 2.41,
+      "backbone0.block3": 9.94,
+      "backbone0.fusion0": 0.26,
+      "backbone0.fusion1": 1.03,
+      "backbone0.fusion2": 6.45,
+      "backbone0.norm2": 0.0,
+      "backbone0.norm3": 0.0,
+      "out1": 0.0,
+      "out2": 0.0,
+      "up1": 0.07,
+      "up11": 3.42,
+      "up12": 0.61,
+      "up13": 0.14,
+      "up2": 0.07,
+      "up21": 3.42,
+      "up22": 0.61,
+      "up23": 0.14
+    }
+  }
+}

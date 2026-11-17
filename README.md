@@ -1,76 +1,110 @@
-multiPI-TransBTS: A Multi-Path Learning Framework for Brain Tumor Image Segmentation Based on Multi-Physical Information
+# multiPI-TransBTS: reproduction, audit of the released code, and one proposed change
 
-> **Authors:**
->
-> *Hongjun Zhu*,
-> *Jiaohang Huang*,
-> *Xuehui Ying*,
-> and *Kuo Chen*,
->
-> 
+This repository builds on the official code for
 
+> Zhu et al., *multiPI-TransBTS: A Multi-Path Learning Framework for Brain Tumor Image Segmentation Based on Multi-Physical Information*, arXiv:2409.12167
+> Official repository: https://github.com/JoetheReindeer/multiPI_TransBTS
 
+The official history is imported unchanged, so every original commit keeps its author. Everything added for the reproduction is on the `reproduction` branch:
 
+| Path | What it is |
+|---|---|
+| `repro/audit.py` | Checks of the released split lists, Hausdorff metric and model. Needs no data and no GPU. |
+| `repro/prepare_data.py`, `repro/data.py` | The released preprocessing, re-implemented step for step, plus split construction. |
+| `repro/train.py`, `repro/losses.py` | Training with the released model, loss and hyper-parameters. Adds mixed precision, resume and logging. |
+| `repro/metrics.py` | The released metrics (called from `kits/`) next to standard ones. |
+| `repro/make_report.py` | Tables and figures from the saved results. |
+| `notebooks/multiPI_TransBTS_colab.ipynb` | The whole pipeline on a free Colab T4. |
+| `results/` | Numbers, logs and figures of the runs reported below. |
 
-## 1. Overview
+The original README is preserved as [`README_upstream.md`](README_upstream.md).
 
-### 1.1. Introduction
+## 1. Does the released code run?
 
-Brain Tumor Segmentation (BraTS) is crucial for clinical diagnosis, treatment planning, and monitoring the progression of brain tumors. However, due to the variability in tumor appearance, size, and intensity across different MRI modalities, automated segmentation remains a challenging task. In this study, we propose a novel Transformer-based framework, multiPI-TransBTS, which integrates multi-physical information to enhance segmentation accuracy. The model leverages spatial information, semantic information, and multi-modal imaging data, addressing the inherent heterogeneity in brain tumor characteristics.
-The multiPI-TransBTS framework consists of an encoder, an Adaptive Feature Fusion (AFF) module, and a multi-source, multi-scale feature decoder. The encoder incorporates a multi-branch architecture to separately extract modality-specific features from different MRI sequences. The AFF module fuses information from multiple sources using channel-wise and element-wise attention, ensuring effective feature recalibration. The decoder combines both common and task-specific features through a Task-Specific Feature Introduction (TSFI) strategy, producing accurate segmentation outputs for Whole Tumor (WT), Tumor Core (TC), and Enhancing Tumor (ET) regions.
-Comprehensive evaluations on the BraTS2019 and BraTS2020 datasets demonstrate the superiority of multiPI-TransBTS over existing state-of-the-art methods. The model consistently achieves better Dice coefficients, Hausdorff distances, and Sensitivity scores, highlighting its effectiveness in addressing the BraTS challenges. Our results also indicate the need for further exploration of the balance between precision and recall in the ET segmentation task. The proposed framework represents a significant advancement in BraTS, with potential implications for improving clinical outcomes for brain tumor patients.
+Not as published. Four small fixes were needed (the commit "Fix the released code so it runs"):
 
-### 1.2. Framework Overview
+- `trainer.py` and `test.py` import a package called `data` that does not exist in the repository (the folders are `data2019` and `data2020`).
+- `test.py` builds the model with an argument it does not have (`num_classes=3`) and unpacks three outputs where the model returns four.
+- `trainer.py` reads `args.ft`, which `train.py` never defines, so resuming crashes.
+- The curvature kernel and the BCE loss are hard-coded to `.cuda()`. They now follow the module's device.
 
-<p align="center">
-    <img src="imgs/multiPI-TransBTS.png"/> <br />
-    <em>
-    Figure 1: Framework of multiPI-TransBTS. This framework consists of three main modules: an encoder, a fusion module, and a decoder. To simplify feature representation, features are divided into common features shared across tasks and individual features specific to each task, denoted by red and blue F-marked blocks, respectively. "SRSA" indicates Spatial-Reduction Self-Attention module. "AFF" and "FE" stand for adaptive 
-    </em>
-</p>
+No model weights are published, so the paper's numbers can only be approached by retraining.
 
+## 2. What the paper's numbers measure
 
-### 1.3. Qualitative Results
+These three points come from reading and running the released code. Each can be re-checked in under a minute with `python -m repro.audit` (output in `results/audit.json`).
 
-<p align="center">
-    <img src="imgs/result2019.png"/> <br />
-    <em> 
-    Figure 2: Qualitative Results.
-    </em>
-</p>
-<p align="center">
-    <img src="imgs/result2020.png"/> <br />
-    <em> 
-    Figure 3: Qualitative Results.
-    </em>
-</p>
+**The train / test split is by slice, not by patient.** The released lists (`data2020/train_list.txt`, `val.txt`, `test_list.txt`) split 24,421 tumour-bearing 2D slices 80 / 10 / 10. All 367 patients that appear in the test list also appear in the training list, and 95.5% of the test slices have a directly adjacent slice (1 mm away, same patient) in the training list. BraTS2019 shows the same pattern (331 of 331 test patients, 94.8% of test slices). A test set of this kind measures interpolation between neighbouring slices of patients the network has already seen, not segmentation of a new patient.
 
-## 2. Proposed Method
+**The reported "HD95" is not a Hausdorff distance in the image.** `kits/metrics.py` passes two whole 224×224 masks to `hausdorff.hausdorff_distance`, a function that expects a list of points with one point per row. Each image row is treated as a 224-dimensional point, and the result is multiplied by 0.95. For a 20-pixel disc moved sideways by 30, 60 or 90 pixels the released function returns 5.9 every time, where the spatial HD95 is 30, 60 and 90 pixels.
 
-### 2.1. Training/Testing
+![Hausdorff check](results/figures/hausdorff_check.png)
 
-The training and testing experiments are conducted using [PyTorch](https://github.com/pytorch/pytorch) with one NVIDIA RTX A4000 GPU.
+**Dice and Sensitivity are pooled over all test pixels**, from one confusion matrix per region, not averaged per patient. Only slices that contain tumour are ever evaluated, because preprocessing drops all other slices. The confusion matrices are also never reset between the validation passes and the final test pass in `trainer.py`.
 
-1. Configuring your environment (Prerequisites):
-       
-    + Installing necessary packages: `pip install -r requirements.txt`.
+Smaller differences between paper and code:
 
-2. Downloading necessary data:
+- The paper's loss (Eq. 24) has unit weights. The code uses `0.3 * (Dice + BCE / batch_size)` per head.
+- The three task decoders share their up-sampling blocks and the final 1×1 output layer. The modules `up11..up23`, `up1`, `up2`, `out1`, `out2` and two stages of the fusion encoder are created but never used: 28.6 M of the 134.0 M parameters never receive a gradient.
+- The paper reports two RTX 8000 (48 GB) cards; the upstream README says one RTX A4000.
 
-    + downloading BraTS 2020 dataset
-    which can be found from [Here](https://www.med.upenn.edu/cbica/brats2020/data.html).
-    
-    + downloading PVTv2 weights and move it into `./networks/pretrained_pth/pvt_v2_b2.pth`,
-    which can be found from [GitHub](https://github.com/whai362/PVT/releases/download/v2/pvt_v2_b2.pth).
+## 3. What was run here
 
-3. Preprocessing:
+The paper's setting is 100 epochs at batch 12 over 19,536 training slices (1,628 iterations per epoch) with four PVTv2-B2 branches plus a fusion encoder. That does not fit in a free Colab session (see the measured speed in the results below), so the runs here are **scaled**: a random subset of patients, fewer epochs, everything else as released.
 
-    + Before training, the dataset must be preprocessed, just run `python dateset_preprocess.py`. We provide the train 
-    dataset validation dataset and test dataset in `./data/train_list.txt` `./data/val_list.txt` and `./data/train_list.txt`.
-4. Training:
-    
-    + After processing training dataset, just run `python train.py --modalities all --model multiPI-TransBTS --batch_size 12` to train our model.
-      (you can set your parameters when running the code.)
+| | Paper | This repository (scaled) |
+|---|---|---|
+| Data | BraTS2020, 369 patients, 24,421 slices | BraTS2020, subset of the 369 patients (see results) |
+| Split | released slice lists, 80/10/10 | the same lists restricted to the subset, **plus** patients never used in training |
+| Model, loss, optimiser | released code | released code, unchanged |
+| Batch size, lr, schedule | 12, 0.01, poly | 12, 0.01, poly |
+| Epochs | 100 | see results |
+| Precision | not stated | mixed precision (to fit a 16 GB T4) |
+| Metrics | released metrics | released metrics **and** standard ones |
 
+One trained baseline is evaluated twice: on the official test slices of the subset (the paper's protocol) and on patients that were held out entirely. The difference between the two is the effect of the slice-level split.
 
-**[⬆ back to top](#1-preface)**
+## 4. Proposed change
+
+The paper notes that enhancing tumour (ET) is its weakest region and that ET sensitivity is not the best among the compared methods. The change tested here targets exactly that and touches one parameter:
+
+- The overlap term of the ET head becomes a Tversky index, `TP / (TP + (1-β)·FP + β·FN)`.
+- β = 0.5 is algebraically the released Dice loss, so the baseline is unchanged.
+- β = 0.7 penalises missed ET voxels more than false alarms.
+
+WT and TC heads, architecture, data, seed and schedule are identical between the two runs (`--et_beta 0.5` vs `--et_beta 0.7`).
+
+## 5. Results
+
+The numbers, training logs and figures of the Colab runs are written to `results/` by the notebook:
+`results/summary.md` (tables), `results/<run>/results.json` (everything, including per-epoch history) and `results/figures/`.
+
+<!-- RESULTS -->
+*The scaled baseline and variant runs have not been added to this branch yet.* `results/audit.json` (section 2) is already here.
+<!-- /RESULTS -->
+
+## 6. Run it
+
+**Colab (recommended):** [open the notebook in Colab](https://colab.research.google.com/github/mrm2025011LK/multiPI-TransBTS/blob/reproduction/notebooks/multiPI_TransBTS_colab.ipynb), choose a T4 GPU runtime, run all cells. `PRESET = "scaled"` fits one free session; `PRESET = "full"` is the paper's setting.
+
+**Locally:**
+
+```bash
+pip install -r requirements-colab.txt            # plus torch, timm, einops, scipy, matplotlib
+wget -P networks/pretrained_pth https://github.com/whai362/PVT/releases/download/v2/pvt_v2_b2.pth
+
+python -m repro.audit                            # no data needed
+python -m repro.prepare_data --raw /path/to/BraTS2020_TrainingData --out prep --n_subset 80 --n_heldout 30
+python -m repro.train --prep_dir prep --out results/baseline --n_subset 80 --n_heldout 30 --epochs 15 --amp
+python -m repro.train --prep_dir prep --out results/variant_et_beta0.7 --n_subset 80 --n_heldout 30 --epochs 15 --amp --et_beta 0.7
+python -m repro.make_report --baseline results/baseline --variant results/variant_et_beta0.7
+```
+
+Leave out `--n_subset` / `--n_heldout` and use `--epochs 100` for the full setting.
+
+## 7. Limits
+
+- The runs here are scaled (subset of patients, fewer epochs, one seed). Small differences between two runs are within noise.
+- Evaluation is on 2D slices that contain tumour, as in the released code. Whole-volume, per-patient 3D metrics that include tumour-free slices are the obvious next step.
+- Mixed precision is a deviation from the paper, made to fit a 16 GB GPU.
+- The official repository has no licence file. Its history and attribution are kept here; the original authors hold the rights to their code.

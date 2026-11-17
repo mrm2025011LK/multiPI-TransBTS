@@ -1,0 +1,6 @@
+# Versions already present on Google Colab (torch 2.x, timm 1.x, einops, numpy, scipy, matplotlib)
+# work with this code. Only these need installing there:
+hausdorff
+tensorboardX
+SimpleITK
+kagglehub

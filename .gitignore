@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+networks/pretrained_pth/*.pth
+/prep/
+/raw/
+checkpoint.pt
+*.ckpt
+.ipynb_checkpoints/
