@@ -143,7 +143,7 @@ def main(argv=None):
     if "unseen" in base:
         series.append(("Ours, unseen patients", ORANGE, [base["unseen"][r]["dice_pooled"] for r in REGIONS]))
     lo = min(min(s[2]) for s in series)
-    _bars(ax, list(REGIONS), series, ylim=(max(0.0, np.floor((lo - 0.08) * 10) / 10), 1.04))
+    _bars(ax, list(REGIONS), series, ylim=(0.0, 1.08))
     ax.set_title("Dice by tumour region")
     ax.set_ylabel("Dice (pooled over test pixels)")
     fig.tight_layout()
@@ -171,7 +171,7 @@ def main(argv=None):
         series = [(f"Baseline (beta {cfg['et_beta']})", BLUE, [base[key]["ET"][k] for k in ks]),
                   (f"Variant (beta {var['config']['et_beta']})", ORANGE, [var[key]["ET"][k] for k in ks])]
         lo = min(min(s[2]) for s in series)
-        _bars(ax, labels, series, ylim=(max(0.0, np.floor((lo - 0.08) * 10) / 10), 1.04))
+        _bars(ax, labels, series, ylim=(0.0, 1.08))
         ax.set_title(f"Enhancing tumour on {'unseen patients' if key == 'unseen' else 'the test set'}")
         fig.tight_layout()
         fig.savefig(os.path.join(fig_dir, "et_variant.png"), dpi=180)

@@ -1,0 +1,46 @@
+split: {"val": {"slices": 543, "patients": 80, "patients_also_in_train": 80}, "test": {"slices": 520, "patients": 79, "patients_also_in_train": 79}, "unseen": {"slices": 1874, "patients": 30, "patients_also_in_train": 0}, "train": {"slices": 4348, "patients": 80}}
+loaded 7285 slices, 2.92 GB in RAM
+epoch 1/5 it 0/362 loss 0.9263 lr 0.01000 0.39 it/s
+epoch 1/5 it 50/362 loss 0.9056 lr 0.00975 1.45 it/s
+epoch 1/5 it 100/362 loss 0.8811 lr 0.00950 1.50 it/s
+epoch 1/5 it 150/362 loss 0.8296 lr 0.00925 1.53 it/s
+epoch 1/5 it 200/362 loss 0.7631 lr 0.00900 1.54 it/s
+epoch 1/5 it 250/362 loss 0.7146 lr 0.00875 1.54 it/s
+epoch 1/5 it 300/362 loss 0.6729 lr 0.00850 1.55 it/s
+epoch 1/5 it 350/362 loss 0.6433 lr 0.00824 1.55 it/s
+epoch 2/5 it 0/362 loss 0.5699 lr 0.00818 1.48 it/s
+epoch 2/5 it 50/362 loss 0.4603 lr 0.00793 1.51 it/s
+epoch 2/5 it 100/362 loss 0.4376 lr 0.00767 1.54 it/s
+epoch 2/5 it 150/362 loss 0.4252 lr 0.00741 1.55 it/s
+epoch 2/5 it 200/362 loss 0.4278 lr 0.00716 1.55 it/s
+epoch 2/5 it 250/362 loss 0.4228 lr 0.00690 1.55 it/s
+epoch 2/5 it 300/362 loss 0.4213 lr 0.00664 1.56 it/s
+epoch 2/5 it 350/362 loss 0.4195 lr 0.00638 1.56 it/s
+epoch 3/5 it 0/362 loss 0.4101 lr 0.00631 1.48 it/s
+epoch 3/5 it 50/362 loss 0.3881 lr 0.00605 1.52 it/s
+epoch 3/5 it 100/362 loss 0.3925 lr 0.00579 1.55 it/s
+epoch 3/5 it 150/362 loss 0.3920 lr 0.00552 1.56 it/s
+epoch 3/5 it 200/362 loss 0.3891 lr 0.00526 1.56 it/s
+epoch 3/5 it 250/362 loss 0.3886 lr 0.00499 1.56 it/s
+epoch 3/5 it 300/362 loss 0.3885 lr 0.00472 1.56 it/s
+epoch 3/5 it 350/362 loss 0.3893 lr 0.00445 1.57 it/s
+epoch 4/5 it 0/362 loss 0.2896 lr 0.00438 1.45 it/s
+epoch 4/5 it 50/362 loss 0.3779 lr 0.00411 1.51 it/s
+epoch 4/5 it 100/362 loss 0.3826 lr 0.00383 1.54 it/s
+epoch 4/5 it 150/362 loss 0.3810 lr 0.00356 1.55 it/s
+epoch 4/5 it 200/362 loss 0.3780 lr 0.00328 1.55 it/s
+epoch 4/5 it 250/362 loss 0.3769 lr 0.00299 1.56 it/s
+epoch 4/5 it 300/362 loss 0.3766 lr 0.00271 1.56 it/s
+epoch 4/5 it 350/362 loss 0.3753 lr 0.00242 1.56 it/s
+epoch 5/5 it 0/362 loss 0.4398 lr 0.00235 1.50 it/s
+epoch 5/5 it 50/362 loss 0.3610 lr 0.00206 1.53 it/s
+epoch 5/5 it 100/362 loss 0.3609 lr 0.00176 1.54 it/s
+epoch 5/5 it 150/362 loss 0.3587 lr 0.00145 1.56 it/s
+epoch 5/5 it 200/362 loss 0.3632 lr 0.00114 1.56 it/s
+epoch 5/5 it 250/362 loss 0.3625 lr 0.00082 1.56 it/s
+epoch 5/5 it 300/362 loss 0.3643 lr 0.00048 1.56 it/s
+epoch 5/5 it 350/362 loss 0.3661 lr 0.00011 1.56 it/s
+val dice: {'WT': 0.9082500458249579, 'TC': 0.8893877498124472, 'ET': 0.8208147398157523}
+test (27s): {"WT": {"dice_pooled": 0.9071, "sensitivity_pooled": 0.9291, "specificity_pooled": 0.9964, "hd95_official": 2.802, "precision_pooled": 0.8861, "dice_per_patient_mean": 0.8914, "dice_per_patient_std": 0.0717, "hd95_true_mean_px": 13.4792, "hd95_true_median_px": 5.0, "hd95_true_n_slices": 514, "hd95_undefined_slices": 6}, "TC": {"dice_pooled": 0.8868, "sensitivity_pooled": 0.8933, "specificity_pooled": 0.9984, "hd95_official": 1.9805, "precision_pooled": 0.8803, "dice_per_patient_mean": 0.8001, "dice_per_patient_std": 0.2402, "hd95_true_mean_px": 6.1278, "hd95_true_median_px": 3.6056, "hd95_true_n_slices": 342, "hd95_undefined_slices": 63}, "ET": {"dice_pooled": 0.8245, "sensitivity_pooled": 0.8443, "specificity_pooled": 0.9988, "hd95_official": 1.8073, "precision_pooled": 0.8057, "dice_per_patient_mean": 0.648, "dice_per_patient_std": 0.2958, "hd95_true_mean_px": 7.1551, "hd95_true_median_px": 3.5933, "hd95_true_n_slices": 290, "hd95_undefined_slices": 96}}
+unseen (87s): {"WT": {"dice_pooled": 0.8821, "sensitivity_pooled": 0.888, "specificity_pooled": 0.9963, "hd95_official": 2.9057, "precision_pooled": 0.8764, "dice_per_patient_mean": 0.8634, "dice_per_patient_std": 0.0627, "hd95_true_mean_px": 15.5371, "hd95_true_median_px": 7.0865, "hd95_true_n_slices": 1824, "hd95_undefined_slices": 50}, "TC": {"dice_pooled": 0.7995, "sensitivity_pooled": 0.7623, "specificity_pooled": 0.998, "hd95_official": 2.2138, "precision_pooled": 0.8406, "dice_per_patient_mean": 0.7713, "dice_per_patient_std": 0.2039, "hd95_true_mean_px": 11.4282, "hd95_true_median_px": 7.0529, "hd95_true_n_slices": 1291, "hd95_undefined_slices": 212}, "ET": {"dice_pooled": 0.8022, "sensitivity_pooled": 0.7787, "specificity_pooled": 0.9989, "hd95_official": 1.9295, "precision_pooled": 0.8272, "dice_per_patient_mean": 0.6103, "dice_per_patient_std": 0.3233, "hd95_true_mean_px": 10.4409, "hd95_true_median_px": 4.4721, "hd95_true_n_slices": 1024, "hd95_undefined_slices": 380}}
+wrote results/variant_et_beta0.7/results.json

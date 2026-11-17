@@ -50,15 +50,15 @@ Smaller differences between paper and code:
 
 ## 3. What was run here
 
-The paper's setting is 100 epochs at batch 12 over 19,536 training slices (1,628 iterations per epoch) with four PVTv2-B2 branches plus a fusion encoder. That does not fit in a free Colab session (see the measured speed in the results below), so the runs here are **scaled**: a random subset of patients, fewer epochs, everything else as released.
+The paper's setting is 100 epochs at batch 12 over 19,536 training slices (1,628 iterations per epoch) with four PVTv2-B2 branches plus a fusion encoder. At the 1.6 iterations per second measured on a Colab T4 that is about 29 GPU-hours, which does not fit in a free Colab session, so the runs here are **scaled**: a random subset of patients, fewer epochs, everything else as released.
 
 | | Paper | This repository (scaled) |
 |---|---|---|
-| Data | BraTS2020, 369 patients, 24,421 slices | BraTS2020, subset of the 369 patients (see results) |
+| Data | BraTS2020, 369 patients, 24,421 slices | BraTS2020, 80 patients for training and the official protocol, 30 more held out |
 | Split | released slice lists, 80/10/10 | the same lists restricted to the subset, **plus** patients never used in training |
 | Model, loss, optimiser | released code | released code, unchanged |
 | Batch size, lr, schedule | 12, 0.01, poly | 12, 0.01, poly |
-| Epochs | 100 | see results |
+| Epochs | 100 | 5 (chosen by the notebook's speed test to fit the session) |
 | Precision | not stated | mixed precision (to fit a 16 GB T4) |
 | Metrics | released metrics | released metrics **and** standard ones |
 
@@ -76,12 +76,49 @@ WT and TC heads, architecture, data, seed and schedule are identical between the
 
 ## 5. Results
 
-The numbers, training logs and figures of the Colab runs are written to `results/` by the notebook:
-`results/summary.md` (tables), `results/<run>/results.json` (everything, including per-epoch history) and `results/figures/`.
+**Scale of the run** (17 Nov 2026, one Colab Tesla T4, executed notebook in `notebooks/executed_colab_run_2026-11-17.ipynb`):
 
-<!-- RESULTS -->
-*The scaled baseline and variant runs have not been added to this branch yet.* `results/audit.json` (section 2) is already here.
-<!-- /RESULTS -->
+- 80 of the 369 patients, 4,348 training slices (22% of the paper's 19,536), plus 30 patients held out entirely (1,874 slices).
+- 5 epochs = 1,810 iterations at batch 12, against 162,800 in the paper's setting (1.1%). Training took 19 minutes per run at 1.57 iterations per second, with 7.8 GB peak GPU memory.
+- At that speed the paper's full setting needs about 29 GPU-hours on a T4, which is why the run is scaled.
+- Preprocessing check: for all 110 processed patients, the slices produced are exactly the slices in the official lists.
+
+### Baseline: released model and settings
+
+Dice, pooled over test pixels as in the released code:
+
+| | WT | TC | ET | Mean |
+|---|---|---|---|---|
+| Paper, BraTS2020, full run | 0.954 | 0.947 | 0.909 | 0.937 |
+| This run, official test slices (520 slices) | 0.903 | 0.887 | 0.786 | 0.859 |
+| Same weights, unseen patients | 0.881 | 0.806 | 0.747 | 0.811 |
+
+![Dice by protocol](results/figures/dice_protocols.png)
+
+- **The paper's numbers are not reached.** With about 1% of the training iterations and a fifth of the data, mean Dice on the official protocol is 0.859 against 0.937. The ordering WT > TC > ET matches the paper.
+- **The slice-level split flatters the result.** The same weights lose 0.047 mean Dice on patients they have never seen, and 0.081 on tumour core. All 79 patients in the official test slices of the subset are also training patients.
+- **Per patient, ET is much weaker than the pooled number suggests:** 0.577 ± 0.303 mean Dice over the 30 unseen patients, against 0.747 pooled.
+- **The released `hausdorff_95` reports 1.9 to 2.9** on the unseen patients, where the spatial HD95 averages 10 to 18 pixels (1 pixel = 1 mm in BraTS).
+
+### Proposed change: β = 0.7 on the ET loss
+
+Enhancing tumour, baseline → variant (same split, seed and schedule):
+
+| Test set | Dice | Sensitivity | Precision | Per-patient Dice |
+|---|---|---|---|---|
+| Unseen patients | 0.747 → **0.802** | 0.637 → 0.779 | 0.903 → 0.827 | 0.577 → 0.610 |
+| Official test slices | 0.786 → **0.825** | 0.706 → 0.844 | 0.886 → 0.806 | 0.631 → 0.648 |
+
+![ET with the variant](results/figures/et_variant.png)
+
+- ET sensitivity rises and precision falls, as intended, and ET Dice improves on both test sets.
+- WT and TC Dice on unseen patients move by less than 0.01 (0.881 → 0.882 and 0.806 → 0.799).
+- The spatial HD95 for ET does not improve (10.1 → 10.4 px).
+- This is one seed and a short run in which the baseline still under-segments ET. Whether the gain survives full training is open.
+
+Full tables are in `results/summary.md`, raw numbers in `results/<run>/results.json`, training logs in `results/logs/`.
+
+![Examples on unseen patients](results/figures/examples.png)
 
 ## 6. Run it
 
@@ -104,7 +141,7 @@ Leave out `--n_subset` / `--n_heldout` and use `--epochs 100` for the full setti
 
 ## 7. Limits
 
-- The runs here are scaled (subset of patients, fewer epochs, one seed). Small differences between two runs are within noise.
+- The runs here are scaled (80 patients, 5 epochs, one seed) and do not reach the paper's numbers. Small differences between two runs are within noise.
 - Evaluation is on 2D slices that contain tumour, as in the released code. Whole-volume, per-patient 3D metrics that include tumour-free slices are the obvious next step.
 - Mixed precision is a deviation from the paper, made to fit a 16 GB GPU.
 - The official repository has no licence file. Its history and attribution are kept here; the original authors hold the rights to their code.

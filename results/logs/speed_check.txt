@@ -1,0 +1,8 @@
+split: {"val": {"slices": 543, "patients": 80, "patients_also_in_train": 80}, "test": {"slices": 520, "patients": 79, "patients_also_in_train": 79}, "unseen": {"slices": 1874, "patients": 30, "patients_also_in_train": 0}, "train": {"slices": 4348, "patients": 80}}
+loaded 7285 slices, 2.92 GB in RAM
+epoch 1/1 it 0/362 loss 0.9282 lr 0.01000 0.15 it/s
+wrote /content/bench/results.json
+
+batch size 12: 1.38 it/s on Tesla T4, peak GPU memory 7.8 GB, 362 iterations per epoch
+the paper's full setting (1628 iterations x 100 epochs at batch 12) would take about 33 GPU-hours on this GPU
+epochs per run: 5  (about 22 min of training per run)
